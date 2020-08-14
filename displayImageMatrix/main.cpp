@@ -4,11 +4,11 @@
 
 using namespace cv;
 
-std::string type2str(int type) {
+std::string type2str(uint type) {
     std::string r;
 
-    uchar depth = type & CV_MAT_DEPTH_MASK;
-    uchar chans = 1 + (type >> CV_CN_SHIFT);
+    uchar depth = type & (unsigned int) CV_MAT_DEPTH_MASK;
+    uchar chans = 1 + (type >> (unsigned int) CV_CN_SHIFT);
 
     switch (depth) {
         case CV_8U:
