@@ -50,6 +50,7 @@ int main() {
 
     std::cout << "Display image as matrix" << std::endl;
     std::cout<< testImage << std::endl;
+
     std::cout << "Data type = " << type2str(testImage.type()) << std::endl;
     std::cout << "Image Dimensions = " << testImage.size();
     return 0;
