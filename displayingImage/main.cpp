@@ -8,6 +8,9 @@ int main() {
 
     // read the image
     auto img = imread("boy.jpg", IMREAD_COLOR);
+    std::cout << "number of channel is " << img.channels() << std::endl;
+    std::cout << "size of the image is " << img.size() << std::endl;
+
     auto windowName = "boy";
 
     // default is not to resize the window
