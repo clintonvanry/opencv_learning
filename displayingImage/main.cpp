@@ -5,12 +5,21 @@ using namespace cv;
 
 int main() {
     std::cout << "Display image in a window" << std::endl;
+
     // read the image
     auto img = imread("boy.jpg", IMREAD_COLOR);
+    auto windowName = "boy";
+
+    // default is not to resize the window
+    namedWindow(windowName,WINDOW_NORMAL);
+
     // this will display the image using a window with the name "boy"
-    imshow("boy",img);
+    imshow(windowName,img);
+
     // this will keep the window open and wait for user input
-    waitKey(0);
+    auto keyPressed = waitKey(0);
+    std::cout << "key pressed is " << (char)keyPressed << std::endl;
+
     // good practice to close all windows.
     destroyAllWindows();
 
