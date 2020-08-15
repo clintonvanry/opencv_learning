@@ -58,12 +58,12 @@ int main() {
     // so to manipulate 4th row and 5th column it is (3,4)
     // retrieve a pixel
     auto pixel = (int) testImage.at<uchar>(2,4);
-    std::cout << "valud at position row 3, column 5 is 249 and what has been retrieved is " << pixel << std::endl;
+    std::cout << "valid at position row 3, column 5 is 249 and what has been retrieved is " << pixel << std::endl;
 
     // changing the pixel at specific location
     // set it to black
     testImage.at<uchar>(2,4) = 0;
-    std::cout << "change the pixel from 249 to 0 at postision row 3, column 5" << std::endl;
+    std::cout << "change the pixel from 249 to 0 at position row 3, column 5" << std::endl;
     std::cout<< testImage << std::endl;
 
 
