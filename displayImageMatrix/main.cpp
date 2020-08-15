@@ -66,6 +66,16 @@ int main() {
     std::cout << "change the pixel from 249 to 0 at position row 3, column 5" << std::endl;
     std::cout<< testImage << std::endl;
 
+    // changing a region of interest or group of pixels
+    // retrieve a region
+    auto regionOfInterest = testImage(Range(0,2), Range(0,4));
+    std::cout << "region select is first 2 rows by 4 columns" << std::endl;
+    std::cout << regionOfInterest << std::endl;
+
+    // change the region
+    testImage(Range(0,2), Range(0,4)).setTo(111);
+    std::cout << "change a region [first 2 rows by 4 columns] to 111" << std::endl;
+    std::cout << testImage << std::endl;
 
     return 0;
 }
