@@ -3,3 +3,7 @@ displayImageMatrix/cmake-build-debug/CMakeFiles
 displayImageMatrix/cmake-build-debug
 displayingImage/.idea
 displayingImage/cmake-build-debug
+modifyColorPixels/.idea
+modifyColorPixels/cmake-build-debug
+displayImageAlphaChannel/.idea
+displayImageAlphaChannel/cmake-build-debug
