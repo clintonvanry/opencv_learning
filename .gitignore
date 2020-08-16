@@ -11,3 +11,5 @@ createImageMask/.idea
 createNewImage/.idea
 createImageMask/cmake-build-debug
 createNewImage/cmake-build-debug
+imageContrastBrightness/.idea
+imageContrastBrightness/cmake-build-debug
