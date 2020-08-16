@@ -7,3 +7,7 @@ modifyColorPixels/.idea
 modifyColorPixels/cmake-build-debug
 displayImageAlphaChannel/.idea
 displayImageAlphaChannel/cmake-build-debug
+createImageMask/.idea
+createNewImage/.idea
+createImageMask/cmake-build-debug
+createNewImage/cmake-build-debug
