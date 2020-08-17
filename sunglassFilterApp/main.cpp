@@ -41,7 +41,17 @@ int main() {
     Mat glassBGR, glassMask;
     merge(sunGlassGBRChannels,3,glassBGR);
     std::cout << "glassBGR size:" << glassBGR.size() << " channels:" << glassBGR.channels() << " dataType:" << typeToString(glassBGR.type()) << std::endl;
+    // alpha channel to the glass mask
     glassMask = sunglassChannels[3];
+
+    // Make the dimensions of the mask same as the input image.
+    // Since Face Image is a 3-channel image, we create a 3 channel image for the mask
+    Mat glassMaskMod;
+    Mat glassMaskModChannels[] = {glassMask,glassMask,glassMask};
+    merge(glassMaskModChannels,3,glassMaskMod);
+    // Make the values [0,1] since we are using arithmetic operations
+    glassMaskMod /= 255;
+
 
     std::cout << "Naive placement of sunglass on face image" << std::endl;
     auto faceWithSunglassNaive = img.clone();
@@ -50,6 +60,34 @@ int main() {
     std::cout << "regionOfInterest size:" << regionOfInterest.size() << " channels:" << regionOfInterest.channels() << " dataType:" << typeToString(regionOfInterest.type()) << std::endl;
     glassBGR.copyTo(regionOfInterest);
 
+    std::cout << "Arithmetic placement of sunglass on face image" << std::endl;
+    auto faceWithGlassesArithmetic = img.clone();
+    std::cout << "faceWithGlassesArithmetic size:" << faceWithGlassesArithmetic.size() << " channels:" << faceWithGlassesArithmetic.channels() << " dataType:" << typeToString(faceWithGlassesArithmetic.type()) << std::endl;
+    // Get the eye region from the face image
+    Mat eyeROI = faceWithGlassesArithmetic(Range(150,250),Range(140,440));
+    Mat eyeROIChannels[3];
+    split(eyeROI,eyeROIChannels);
+    Mat maskedEyeChannels[3];
+    Mat maskedEye;
+
+    for (int i = 0; i < 3; i++)
+    {
+        // Use the mask to create the masked eye region
+        multiply(eyeROIChannels[i], (1-glassMaskModChannels[i]), maskedEyeChannels[i]);
+    }
+    merge(maskedEyeChannels,3,maskedEye);
+    Mat maskedGlass;
+    // Use the mask to create the masked sunglass region
+    multiply(glassBGR, glassMaskMod, maskedGlass);
+
+    Mat eyeRoiFinal;
+    // Combine the Sunglass in the Eye Region to get the augmented image
+    add(maskedEye, maskedGlass, eyeRoiFinal);
+
+    // Replace the eye ROI with the output from the previous section
+    eyeRoiFinal.copyTo(eyeROI);
+
+
     imshow("Original Image",img);
     imshow("Original Sunglass", sunglassImg);
     imshow("Resize Sunglass", resizeSunglassImg);
@@ -57,6 +95,10 @@ int main() {
     imshow("Mask Sunglass", glassMask);
     imshow("RegionOfInterest", regionOfInterest);
     imshow("Naive placement of sunglasses", faceWithSunglassNaive);
+    imshow("maskedEye", maskedEye);
+    imshow("maskedGlass", maskedGlass);
+    imshow("eyeRoiFinal", eyeRoiFinal);
+    imshow("faceWithGlassesArithmetic", faceWithGlassesArithmetic);
 
     waitKey(0);
 
