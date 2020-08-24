@@ -15,3 +15,5 @@ imageContrastBrightness/.idea
 imageContrastBrightness/cmake-build-debug
 sunglassFilterApp/.idea
 sunglassFilterApp/cmake-build-debug
+annotateImage/.idea
+annotateImage/cmake-build-debug
