@@ -17,3 +17,5 @@ sunglassFilterApp/.idea
 sunglassFilterApp/cmake-build-debug
 annotateImage/.idea
 annotateImage/cmake-build-debug
+QRCodeDetector/.idea
+QRCodeDetector/cmake-build-debug
