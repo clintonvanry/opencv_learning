@@ -22,3 +22,5 @@ QRCodeDetector/cmake-build-debug
 playVideoBasics/.idea
 playVideoBasics/cmake-build-debug
 resources
+webCamWithKeyboardInput/.idea
+webCamWithKeyboardInput/cmake-build-debug
