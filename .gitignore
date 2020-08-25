@@ -19,3 +19,6 @@ annotateImage/.idea
 annotateImage/cmake-build-debug
 QRCodeDetector/.idea
 QRCodeDetector/cmake-build-debug
+playVideoBasics/.idea
+playVideoBasics/cmake-build-debug
+resources
