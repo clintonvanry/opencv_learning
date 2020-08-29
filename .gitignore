@@ -24,3 +24,5 @@ playVideoBasics/cmake-build-debug
 resources
 webCamWithKeyboardInput/.idea
 webCamWithKeyboardInput/cmake-build-debug
+mouseEventsSample/.idea
+mouseEventsSample/cmake-build-debug
