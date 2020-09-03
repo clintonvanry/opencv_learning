@@ -38,3 +38,5 @@ thresholdAlgorithmSample/.idea
 thresholdAlgorithmSample/cmake-build-debug
 implementContours/.idea
 implementContours/cmake-build-debug
+blobDetection/.idea
+blobDetection/cmake-build-debug
