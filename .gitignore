@@ -36,3 +36,5 @@ implementMorphologicalOps/.idea
 implementMorphologicalOps/cmake-build-debug
 thresholdAlgorithmSample/.idea
 thresholdAlgorithmSample/cmake-build-debug
+implementContours/.idea
+implementContours/cmake-build-debug
