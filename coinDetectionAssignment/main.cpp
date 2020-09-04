@@ -11,7 +11,9 @@ void ProcessCoinsB();
 Mat displayConnectedComponents(Mat &im);
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    std::cout << "coin detection assignment" << std::endl;
+    ProcessCoinsA();
+    destroyAllWindows();
     return 0;
 }
 void ProcessCoinsA()
@@ -35,8 +37,14 @@ void ProcessCoinsA()
     ///
     /// YOUR CODE HERE
     ///
+    Mat imageGray;
+    cv::cvtColor(image,imageGray, COLOR_BGR2GRAY);
 
     // display image
+    imshow("Gray image", imageGray);
+    waitKey(0);
+
+
 
     //Step 2.2: Split Image into R,G,B Channels
     // Split cell into channels
@@ -44,8 +52,22 @@ void ProcessCoinsA()
     ///
     /// YOUR CODE HERE
     ///
+    Mat imageB, imageG, imageR;
+    Mat imageRGBA[3];
+    split(image, imageRGBA);
+
+    imageB = imageRGBA[0];
+    imageG = imageRGBA[1];
+    imageR = imageRGBA[2];
+
 
     // display imageB, imageG, imageR
+    imshow("Blue", imageB );
+    imshow("Green", imageG);
+    imshow("Red", imageR);
+
+    waitKey(0);
+
 
     //Step 3.1: Perform Thresholding
     //You will have to carry out this step with different threshold values to see which one suits you the most.
@@ -55,7 +77,23 @@ void ProcessCoinsA()
     /// YOUR CODE HERE
     ///
 
+
+    // get a portion of the image so that we can see what numbers the coin represent
+    Rect roi(imageGray.cols / 2,imageGray.rows / 2 ,100 , 60);
+    Mat croppedImage = imageGray(roi);
+    double cropMin=0,cropMax=0;
+    minMaxIdx(croppedImage,&cropMin, &cropMax);
+    auto cropMean =  mean(croppedImage);
+    cout << "min: " << cropMin << " max: " << cropMax << " mean:" << cropMean << endl;
+    cout << croppedImage << endl;
+
+    Mat imageThreshBinInv;
+    // THRESH_BINARY_INV
+    auto result = threshold(imageGray, imageThreshBinInv, 40, 255, THRESH_BINARY_INV);
+
     // display image
+    imshow("imageThreshBinary", imageThreshBinInv );
+    waitKey(0);
 
     //Step 3.2: Perform morphological operations
     // You will have to carry out this step with different kernel size,
