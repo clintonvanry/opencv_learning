@@ -1,8 +1,5 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-// new
 #include <vector>
 #include <algorithm>
 #include<iterator>
@@ -16,7 +13,7 @@ Mat displayConnectedComponents(Mat &im);
 
 int main() {
     std::cout << "coin detection assignment" << std::endl;
-    //ProcessCoinsA();
+    ProcessCoinsA();
     ProcessCoinsB();
     destroyAllWindows();
     return 0;
@@ -214,8 +211,7 @@ void ProcessCoinsA()
     ///
 
     Mat img = imageCopy.clone();
-    for (int i=0; i < keypoints.size(); i++){
-        KeyPoint k = keypoints[i];
+    for (auto k : keypoints){
         Point keyPt;
         keyPt = k.pt;
         x=(int)keyPt.x;
@@ -363,9 +359,9 @@ void ProcessCoinsA()
 
     Moments moment;
 
-    for (size_t i=0; i < contours.size(); i++){
+    for (auto & contour : contours){
 
-        moment = moments(contours[i]);
+        moment = moments(contour);
         x = int(moment.m10/double(moment.m00));
         y = int(moment.m01/double(moment.m00));
         center = Point(x, y);
@@ -374,7 +370,7 @@ void ProcessCoinsA()
         // Fit a circle
         Point2f cent;
         float rad;
-        minEnclosingCircle(contours[i], cent, rad);
+        minEnclosingCircle(contour, cent, rad);
         circle(imgContourCircle,cent,10, Scalar(0,0,255), -1);
         circle(imgContourCircle,cent,rad, Scalar(255,0,0), 4);
     }
@@ -602,8 +598,7 @@ void ProcessCoinsB()
     ///
 
     Mat img = imageCopy.clone();
-    for (int i=0; i < keypoints.size(); i++){
-        KeyPoint k = keypoints[i];
+    for (const auto& k : keypoints){
         Point keyPt;
         keyPt = k.pt;
         x=(int)keyPt.x;
