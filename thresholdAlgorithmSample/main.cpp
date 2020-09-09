@@ -4,11 +4,14 @@
 
 using namespace cv;
 
+void Quiz3();
 
 int main() {
+
+    Quiz3();
+
     std::cout << "Threshold algorithms" << std::endl;
     auto imgSource = imread("threshold.png", IMREAD_GRAYSCALE);
-
 
     // Set threshold and maximum value
     auto thresh = 100;
@@ -62,4 +65,27 @@ int main() {
     destroyAllWindows();
 
     return 0;
+}
+
+void Quiz3()
+{
+    Mat src = Mat::zeros(10,10,CV_8U);
+    Mat dst;
+
+    src.at<uchar>(1,1) = 120;
+    src.at<uchar>(1,2) = 127;
+    src.at<uchar>(1,3) = 127;
+    src.at<uchar>(1,7) = 128;
+    src.at<uchar>(1,8) = 128;
+    src.at<uchar>(1,9) = 255;
+
+
+    threshold(src,dst,127,255,THRESH_BINARY);
+
+    std::cout << "dst" << std::endl;
+    std::cout << dst << std::endl;
+
+    imshow("dst", dst);
+    auto k = waitKey(0);
+    std::cout << k << std::endl;
 }
