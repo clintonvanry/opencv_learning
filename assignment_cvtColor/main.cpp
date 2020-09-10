@@ -10,6 +10,8 @@ int main()
 {
 
     auto img = imread("sample.jpg");
+    auto img2 = imread("sample01.jpg");
+
     std::cout << typeToString(img.type()) << std::endl;
     namedWindow("sample", WINDOW_NORMAL);
     imshow("sample", img);
@@ -29,9 +31,9 @@ int main()
     imshow("Gray::Difference", diffGray);
     waitKey(0);
 
-    Mat hsv = convertBGRtoHSV(img);
+    Mat hsv = convertBGRtoHSV(img2);
     Mat hsv_cv;
-    cvtColor(img,hsv_cv,COLOR_BGR2HSV);
+    cvtColor(img2,hsv_cv,COLOR_BGR2HSV);
 
     Mat diffHSV;
     absdiff(hsv,hsv_cv,diffHSV);
@@ -67,10 +69,8 @@ Mat convertBGRtoGray(Mat image)
 
     Mat gray;
     bgrChannels[0].convertTo(gray, CV_8UC1);
-
     std::cout << typeToString(gray.type()) << std::endl;
-    imshow("gray", gray);
-    waitKey(0);
+
 
     return gray;
 
@@ -80,5 +80,8 @@ Mat convertBGRtoHSV(Mat image)
 {
     Mat hsv_cv;
     cvtColor(image,hsv_cv,COLOR_BGR2HSV);
+
+    std::cout << hsv_cv << std::endl;
+
     return hsv_cv;
 }
