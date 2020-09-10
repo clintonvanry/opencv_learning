@@ -10,13 +10,16 @@ int main()
 {
 
     auto img = imread("sample.jpg");
+    std::cout << typeToString(img.type()) << std::endl;
     namedWindow("sample", WINDOW_NORMAL);
     imshow("sample", img);
     waitKey(0);
 
-    Mat gray = convertBGRtoGray(img);
     Mat gray_cv;
     cvtColor(img, gray_cv, COLOR_BGR2GRAY);
+    std::cout << typeToString(gray_cv.type()) << std::endl;
+    Mat gray = convertBGRtoGray(img);
+
 
     Mat diffGray;
     absdiff(gray,gray_cv,diffGray);
@@ -46,9 +49,31 @@ int main()
 
 Mat convertBGRtoGray(Mat image)
 {
-    Mat gray_cv;
-    cvtColor(image, gray_cv, COLOR_BGR2GRAY);
-    return gray_cv;
+    // Formulae: gray = (0.299 * red channel) + (0.587 * green channel) +  (0.114 * blue channel)
+    Mat workingImage;
+    image.convertTo(workingImage,CV_32FC3);
+
+    float blueFactor = 0.114, greenFactor = 0.587, redFactor = 0.299;
+    Mat bgrChannels[3];
+
+    split(workingImage, bgrChannels);
+
+    multiply(bgrChannels[0],blueFactor,bgrChannels[0]);
+    multiply(bgrChannels[1],greenFactor,bgrChannels[1]);
+    multiply(bgrChannels[2],redFactor,bgrChannels[2]);
+
+    add(bgrChannels[0],bgrChannels[1],bgrChannels[0]);
+    add(bgrChannels[0],bgrChannels[2],bgrChannels[0]);
+
+    Mat gray;
+    bgrChannels[0].convertTo(gray, CV_8UC1);
+
+    std::cout << typeToString(gray.type()) << std::endl;
+    imshow("gray", gray);
+    waitKey(0);
+
+    return gray;
+
 }
 
 Mat convertBGRtoHSV(Mat image)
