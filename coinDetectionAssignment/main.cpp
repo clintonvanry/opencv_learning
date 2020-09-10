@@ -13,7 +13,7 @@ Mat displayConnectedComponents(Mat &im);
 
 int main() {
     std::cout << "coin detection assignment" << std::endl;
-    ProcessCoinsA();
+    //ProcessCoinsA();
     ProcessCoinsB();
     destroyAllWindows();
     return 0;
@@ -116,9 +116,9 @@ void ProcessCoinsA()
     int kSizeDilate = 3; // 5
     //int kSizeDilate2 = 3;
     int kSizeErode = 3;
-    Mat kernelDilate = getStructuringElement(cv::MORPH_CROSS,Size(kSizeDilate,kSizeDilate));
+    Mat kernelDilate = getStructuringElement(cv::MORPH_ELLIPSE,Size(kSizeDilate,kSizeDilate));
     //Mat kernelDilate2 = getStructuringElement(cv::MORPH_CROSS,Size(kSizeDilate2,kSizeDilate2)); MORPH_ELLIPSE
-    Mat kernelErode = getStructuringElement(cv::MORPH_CROSS,Size(kSizeErode,kSizeErode));
+    Mat kernelErode = getStructuringElement(cv::MORPH_ELLIPSE,Size(kSizeErode,kSizeErode));
     Mat imageMorph;
     dilate(imageThreshBinInv, imageMorph,kernelDilate,Point(-1,-1),4);
     //dilate(imageMorph, imageMorph,kSizeDilate2,Point(-1,-1),2);
@@ -127,6 +127,7 @@ void ProcessCoinsA()
     imshow("imageMorph",image );
 
     waitKey(0);
+
 
     ///
     /// YOUR CODE HERE
@@ -228,8 +229,8 @@ void ProcessCoinsA()
     // display image
 
     imshow("img",img );
-
     waitKey(0);
+
     // Step 4.4: Perform Connected Component Analysis
     // In the final step, perform Connected Component Analysis (CCA) on the binary image to find out the number of connected components.
     // Do you think we can use CCA to calculate number of coins? Why/why not?
@@ -239,8 +240,11 @@ void ProcessCoinsA()
     ///
     /// YOUR CODE HERE
     ///
+    Mat inverse;
+    bitwise_not(image, inverse);
+
     Mat imLabels;
-    int componentCount = connectedComponents(image,imLabels);
+    int componentCount = connectedComponents(inverse,imLabels);
     std::cout << "Number of connected components detected =" << componentCount << std::endl;
 
 
@@ -250,7 +254,7 @@ void ProcessCoinsA()
     Mat connectComponentImage =  displayConnectedComponents(imLabels);
     imshow("connectComponentImage",connectComponentImage );
     waitKey(0);
-
+    return;
     // Step 4.5: Detect coins using Contour Detection
     // In the final step, perform Contour Detection on the binary image to find out the number of coins.
 
@@ -472,7 +476,7 @@ void ProcessCoinsB()
     //  imageG gave me a better result
     //threshold(imageG, imageThreshBinInv, 125, 255, THRESH_BINARY_INV);
     //threshold(imageGray, imageThreshBinInv, 120, 255, THRESH_BINARY);
-    threshold(imageB, dst, 125, 255, THRESH_BINARY);
+    threshold(imageB, dst, 124, 255, THRESH_BINARY);
 
 
     namedWindow("imageThreshBinInv", WINDOW_NORMAL);
@@ -485,10 +489,13 @@ void ProcessCoinsB()
     // You will have to carry out this step with different kernel size, kernel shape and morphological operations to see which one (or more) suits you the most.
     // Do not remove those intermediate images and make sure to document your findings.
 
+
+
     int kSizeMorphExCoinB = 5;
-    Mat kernelMorphExCoinB = getStructuringElement(cv::MORPH_RECT,Size(kSizeMorphExCoinB,kSizeMorphExCoinB));
+    //MORPH_RECT
+    Mat kernelMorphExCoinB = getStructuringElement(cv::MORPH_ELLIPSE,Size(kSizeMorphExCoinB,kSizeMorphExCoinB));
     Mat morphEx;
-    morphologyEx(dst,morphEx,MORPH_OPEN,kernelMorphExCoinB,Point(-1,-1),6);  // 6
+    morphologyEx(dst,morphEx,MORPH_CLOSE,kernelMorphExCoinB,Point(-1,-1),3);  // 6 // 25
 
 
     namedWindow("morphEx", WINDOW_NORMAL);
@@ -496,31 +503,24 @@ void ProcessCoinsB()
     waitKey(0);
 
     int kSizeMorphCloseExCoinB = 5;
-    Mat kernelMorphCloseCoinB = getStructuringElement(cv::MORPH_RECT,Size(kSizeMorphCloseExCoinB,kSizeMorphCloseExCoinB));
+    Mat kernelMorphCloseCoinB = getStructuringElement(cv::MORPH_ELLIPSE,Size(kSizeMorphCloseExCoinB,kSizeMorphCloseExCoinB));
 
     // MORPH_CLOSE
-    morphologyEx(morphEx,morphEx,MORPH_CLOSE,kernelMorphCloseCoinB,Point(-1,-1),5);  // 6
+    morphologyEx(morphEx,morphEx,MORPH_OPEN,kernelMorphCloseCoinB,Point(-1,-1),30);  // 6
     namedWindow("morphExClose", WINDOW_NORMAL);
     imshow("morphExClose",morphEx );
     waitKey(0);
 
+
     Mat imageEroded;
-    int kSizeErodeCoinB = 5; // 3
-    Mat kernelErodeCoinB = getStructuringElement(cv::MORPH_RECT,Size(kSizeErodeCoinB,kSizeErodeCoinB));
-    erode(morphEx, imageEroded, kSizeErodeCoinB,Point(-1,-1),5); // 5 // 6
+    int kSizeErodeCoinB = 3; // 3
+    Mat kernelErodeCoinB = getStructuringElement(cv::MORPH_ELLIPSE,Size(kSizeErodeCoinB,kSizeErodeCoinB));
+    erode(morphEx, imageEroded, kSizeErodeCoinB,Point(-1,-1),3); // 5 // 6
 
     namedWindow("imageEroded", WINDOW_NORMAL);
     imshow("imageEroded",imageEroded );
     waitKey(0);
 
-    Mat imageDilated;
-    int kSizeDilateCoinB = 3;
-    Mat kernelDilateCoinB = getStructuringElement(cv::MORPH_CROSS,Size(kSizeDilateCoinB,kSizeDilateCoinB));
-    dilate(imageEroded, imageDilated,kSizeDilateCoinB,Point(-1,-1),3); // 4
-
-    namedWindow("imageDilated", WINDOW_NORMAL);
-    imshow("imageDilated",imageDilated );
-    waitKey(0);
 
 
     // Step 4.1: Create SimpleBlobDetector
@@ -553,7 +553,7 @@ void ProcessCoinsB()
     // Use detector->detect(image,keypoints) to detect the blobs (coins).
     // The output of the function is a list of keypoints where each keypoint is unique for each blob.
     std::vector<KeyPoint> keypoints;
-    detector->detect(morphEx,keypoints);
+    detector->detect(imageEroded,keypoints);
 
 
     // Print the number of coins detected as well.
@@ -626,8 +626,10 @@ void ProcessCoinsB()
     ///
     /// YOUR CODE HERE
     ///
+    Mat inverseImage;
+    bitwise_not(imageEroded, inverseImage);
     Mat imLabels;
-    int componentCount = connectedComponents(imageEroded,imLabels);
+    int componentCount = connectedComponents(inverseImage,imLabels);
     std::cout << "Number of connected components detected =" << componentCount << std::endl;
     // Print Number of connected components detected = 12
 
@@ -715,21 +717,6 @@ void ProcessCoinsB()
         std::cout << "Contour #" << i+1 << " has area = " << area << " and perimeter = " << perimeter << std::endl;
     }
 
-    /*
-    Contour #1 has area = 145738 and perimeter = 1455.98
-    Contour #2 has area = 217499 and perimeter = 1788.13
-    Contour #3 has area = 256717 and perimeter = 1929.95
-    Contour #4 has area = 242456 and perimeter = 1871.08
-    Contour #5 has area = 247177 and perimeter = 1884.15
-    Contour #6 has area = 13668 and perimeter = 441.161
-    Contour #7 has area = 27054.5 and perimeter = 626.86
-    Contour #8 has area = 224098 and perimeter = 1785.87
-    Contour #9 has area = 220072 and perimeter = 1782.43
-    Contour #10 has area = 142108 and perimeter = 1430.26
-    Contour #11 has area = 211140 and perimeter = 1741.88
-    Contour #12 has area = 255666 and perimeter = 1905.85
-    Contour #13 has area = 8.28649e+06 and perimeter = 12041.4
-     */
 
     // Print maximum area of contour
     // This will be the box that we want to remove
@@ -764,20 +751,6 @@ void ProcessCoinsB()
         std::cout << "Contour #" << i+1 << " has area = " << area << " and perimeter = " << perimeter << std::endl;
     }
 
-    /*
-    Contour #1 has area = 145738 and perimeter = 1455.98
-    Contour #2 has area = 217499 and perimeter = 1788.13
-    Contour #3 has area = 256717 and perimeter = 1929.95
-    Contour #4 has area = 242456 and perimeter = 1871.08
-    Contour #5 has area = 247177 and perimeter = 1884.15
-    Contour #6 has area = 13668 and perimeter = 441.161
-    Contour #7 has area = 27054.5 and perimeter = 626.86
-    Contour #8 has area = 224098 and perimeter = 1785.87
-    Contour #9 has area = 220072 and perimeter = 1782.43
-    Contour #10 has area = 142108 and perimeter = 1430.26
-    Contour #11 has area = 211140 and perimeter = 1741.88
-    Contour #12 has area = 255666 and perimeter = 1905.85
-     */
 
     // Notice carefully that there are 2 contours that have area smaller than others. In our case, those are contours 6 and 7. Let's remove them.
     // Remove contours
@@ -869,5 +842,7 @@ void ProcessCoinsB()
 
     // display image
 
-    waitKey(0);
+
+
+
 }
