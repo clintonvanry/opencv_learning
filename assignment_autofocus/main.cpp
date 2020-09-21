@@ -5,6 +5,10 @@
 
 using namespace cv;
 
+// section 5 of the second paper. -> sum_modified_laplacian
+// fps 5 and it appears the right answer is 95 - 97 frame number
+// between 2 methods there is drift of 3-4 frames
+
 // Implement Variance of absolute values of Laplacian - Method 1
 // Input: image
 // Output: Floating point number denoting the measure of sharpness of image
@@ -15,6 +19,9 @@ double var_abs_laplacian(Mat image){
     ///
     /// YOUR CODE HERE
     ///
+
+    // use cv2.laplacian function
+
 
     return 0;
 }
@@ -29,6 +36,9 @@ double sum_modified_laplacian(Mat image){
     ///
     /// YOUR CODE HERE
     ///
+
+    // use cv2.filter2D function
+
     return 0;
 }
 
