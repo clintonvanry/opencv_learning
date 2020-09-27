@@ -19,11 +19,20 @@ double var_abs_laplacian(Mat image){
     ///
     /// YOUR CODE HERE
     ///
+    int kernelSize = 3;
+    Mat laplacian;
+    Laplacian(image, laplacian, CV_32F, kernelSize,1,0);
+    Mat laplacian_abs = abs(laplacian);
 
-    // use cv2.laplacian function
+    Mat mean;
+    Mat stddev;
+    cv::meanStdDev(laplacian_abs, mean, stddev);
 
+    Mat variance;
+    pow(stddev, 2, variance);
+    Scalar sumResult = sum(variance);
+    return sumResult.val[0];
 
-    return 0;
 }
 
 // Implement Sum Modified Laplacian - Method 2
@@ -37,9 +46,20 @@ double sum_modified_laplacian(Mat image){
     /// YOUR CODE HERE
     ///
 
-    // use cv2.filter2D function
+    Mat kernelX = (Mat_<double>(3,3) << 0.0, 0.0, 0.0, -1.0, 2.0, -1.0, 0.0, 0.0, 0.0);
+    Mat kernelY = (Mat_<double>(3,3) << 0.0, -1.0, 0.0, 0.0, 2.0, 0.0, 0.0, -1.0, 0.0);
 
-    return 0;
+    Mat laplacian_X;
+    filter2D(image, laplacian_X, CV_32F, kernelX);
+
+    Mat laplacian_Y;
+    filter2D(image, laplacian_Y, CV_32F, kernelY);
+
+    Scalar sumResult = sum(abs(laplacian_X) + abs(laplacian_Y));
+
+    return sumResult.val[0];
+
+
 }
 
 
@@ -53,7 +73,9 @@ int main() {
     cap >> frame;
 
     // Display total number of frames in the video
-    std::cout << "Total number of frames : " << (int)cap.get(CAP_PROP_FRAME_COUNT) << std::endl;
+    std::cout << "Total number of frames : " << static_cast<int>( cap.get(CAP_PROP_FRAME_COUNT)) << std::endl;
+    std::cout << "Video Width : " << static_cast<int>( cap.get(CAP_PROP_FRAME_WIDTH)) << std::endl;
+    std::cout << "Video Height : " << static_cast<int>( cap.get(CAP_PROP_FRAME_HEIGHT)) << std::endl;
 
     double maxV1 = 0;
     double maxV2 = 0;
@@ -73,20 +95,27 @@ int main() {
     double val1 = var_abs_laplacian(frame);
     double val2 = sum_modified_laplacian(frame);
 
+
     // Specify the ROI for flower in the frame
     // UPDATE THE VALUES BELOW
-    int topCorner = 0;
-    int leftCorner = 0;
-    int bottomCorner = frame.size().height;
-    int rightCorner = frame.size().width;
+    std::cout << "flower roi is 300x300" << std::endl;
+    int topCorner = 180;
+    int leftCorner = 600;
+    int bottomCorner =  480;
+    int rightCorner = 900;
 
     Mat flower;
-    flower = frame(Range(topCorner,bottomCorner),Range(leftCorner,rightCorner));
+    flower =  frame(Range(topCorner,bottomCorner),Range(leftCorner,rightCorner)); //frame(Range(170,485),Range(580,895));
+
+    imshow("frame", frame);
+    imshow("Flower", flower);
+    waitKey(0);
 
     // Iterate over all the frames present in the video
     while (1){
         // Crop the flower region out of the frame
         flower = frame(Range(topCorner,bottomCorner),Range(leftCorner,rightCorner));
+
         // Get measures of focus from both methods
         val1 = var_abs_laplacian(flower);
         val2 = sum_modified_laplacian(flower);
@@ -127,5 +156,12 @@ int main() {
     cap.release();
 
 
+    imshow("Best frame var_abs_laplacian", bestFrame1);
+    imshow("Best frame sum_modified_laplacian", bestFrame2);
+    waitKey();
+    destroyAllWindows();
+
+
     return 0;
+
 }
