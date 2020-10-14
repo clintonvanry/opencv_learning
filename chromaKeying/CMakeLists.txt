@@ -7,7 +7,7 @@ SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
 
 SET (OpenCV_STATIC ON)
 
-file(COPY greenscreen-asteroid.mp4 background.jpg astroid.png DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY greenscreen-asteroid.mp4 background.jpg DESTINATION ${CMAKE_BINARY_DIR})
 
 find_package(OpenCV REQUIRED)
 

@@ -7,6 +7,8 @@
 #include <opencv2/highgui.hpp>
 
 using namespace cv;
+// https://medium.com/fnplus/blue-or-green-screen-effect-with-open-cv-chroma-keying-94d4a6ab2743
+
 
 // https://github.com/richardjpurcell/chromaKeyer/blob/master/chromaKeyer/submission.cpp
 // https://github.com/Kawaboongawa/OpenCV-Chroma-Key/blob/master/src/main.cpp
@@ -36,23 +38,33 @@ Mat backgroundImage;
 Mat astroidImageFromVideo;
 Mat astroidImageFromVideoClone;
 Mat patchFromAsteroidImage;
+Mat blendedImage;
 
 Point mousePointLBUTTONDOWN(0,0);
 Point mousePointLBUTTONUP(0,0);
-Rect patchROI(0,0,0,0);
 bool mousePressed = false;
 
-int scaleFactor =1;
+Scalar lowerHSV(120,255,255);
+Scalar higherHSV(0,0,0);
+Scalar sampleLowerHSV(120,255,255);
+Scalar sampleHigherHSV(0,0,0);
+Scalar meanOfPatch(0,0,0);
+int previousTrackbarPosition = 0;
+
+int scaleFactor =0;
 void PrintVideoProperties(const VideoCapture& videoCapture);
 void GrabFrameFromVideo(VideoCapture& videoCapture);
 void Tolerance(int trackbarPosition, void* userData);
 void SelectPatch(int event, int x, int y, int flags, void *userdata);
 void resetImage();
+void SetChromaLevelsFromPath();
+void SetChromaLevelsFromTrackbarValue(int trackbarPosition);
+void BlendImageWithChromaLevels();
 
 int main() {
     std::cout << "Chroma keying example" << std::endl;
 
-    backgroundImage = imread("background.jpg",IMREAD_COLOR);
+    backgroundImage = imread("background1.jpg",IMREAD_COLOR);
 
     std::string videoFilename = "greenscreen-asteroid.mp4";
     std::string outputVideoFilename = "output.mp4";
@@ -68,7 +80,6 @@ int main() {
 
     PrintVideoProperties(videoCapture);
     GrabFrameFromVideo(videoCapture);
-    patchFromAsteroidImage = Mat::zeros(astroidImageFromVideo.size(),astroidImageFromVideo.type());
 
     std::string astroidWindow = "Asteroid";
     std::string astroidToleranceTrackbarName = "Tolerance";
@@ -81,7 +92,6 @@ int main() {
     setMouseCallback(astroidWindow,SelectPatch);
 
     imshow(astroidWindow,astroidImageFromVideo);
-    imshow("patch", patchFromAsteroidImage);
     waitKey(0);
 
 
@@ -91,13 +101,7 @@ int main() {
     return 0;
 }
 
-void PrintVideoProperties(const VideoCapture& videoCapture)
-{
-    std::cout << "Video width: " << videoCapture.get(CAP_PROP_FRAME_WIDTH) << std::endl;
-    std::cout << "Video height: " << videoCapture.get(CAP_PROP_FRAME_HEIGHT) << std::endl;
-    std::cout << "Video duration: " << videoCapture.get(CAP_PROP_FRAME_COUNT) << std::endl;
-    std::cout << "Video fps: " << videoCapture.get(CAP_PROP_FPS) << std::endl;
-}
+
 void GrabFrameFromVideo(VideoCapture& videoCapture)
 {
     // go to the 4th second and grab a frame
@@ -110,6 +114,25 @@ void GrabFrameFromVideo(VideoCapture& videoCapture)
 }
 void Tolerance(int trackbarPosition, void* userData)
 {
+    std::cout << trackbarPosition << std::endl;
+    // reset back to the sample values
+    lowerHSV = sampleLowerHSV;
+    higherHSV = sampleHigherHSV;
+    if(trackbarPosition == 0){
+        previousTrackbarPosition = 0;
+    }
+    else{
+        int trackbarValue = trackbarPosition - previousTrackbarPosition;
+        SetChromaLevelsFromTrackbarValue(trackbarValue);
+    }
+
+    std::cout << lowerHSV << std::endl;
+    std::cout << higherHSV << std::endl;
+    std::cout << "sample" << std::endl;
+    std::cout << sampleLowerHSV << std::endl;
+    std::cout << sampleHigherHSV << std::endl;
+
+    BlendImageWithChromaLevels();
 
 }
 
@@ -141,17 +164,138 @@ void SelectPatch(int event, int x, int y, int flags, void *userdata)
         mousePointLBUTTONUP = Point(x,y);
         mousePressed = false;
         resetImage();
-        patchROI = Rect(mousePointLBUTTONDOWN,mousePointLBUTTONUP);
+        Rect patchROI = Rect(mousePointLBUTTONDOWN,mousePointLBUTTONUP);
         rectangle(astroidImageFromVideo, patchROI, Scalar(255,0,0),2);
-        patchFromAsteroidImage = astroidImageFromVideo(patchROI);
+
+        Mat image_hsv;
+        cvtColor(astroidImageFromVideoClone, image_hsv, COLOR_BGR2HSV);
+
+        patchFromAsteroidImage = image_hsv(patchROI);
         imshow("patch", patchFromAsteroidImage);
         imshow("Asteroid", astroidImageFromVideo);
+        SetChromaLevelsFromPath();
+        BlendImageWithChromaLevels();
 
     }
-    
-}
 
+
+}
+void SetChromaLevelsFromTrackbarValue(int trackbarPosition)
+{
+    std::cout << "Trackbar value: " << trackbarPosition << std::endl;
+    int min = 0, max = 0;
+    // update the hue values
+    min = lowerHSV[0];
+    max = higherHSV[0];
+    if(min - trackbarPosition < 0){
+        min = 0;
+    }
+    else{
+        min -= trackbarPosition;
+    }
+    if(max + trackbarPosition >180){
+        max = 180;
+    }
+    else{
+        max += trackbarPosition;
+    }
+    lowerHSV[0] = min;
+    higherHSV[0] = max;
+
+    // update the saturation
+    min = lowerHSV[1];
+    max = higherHSV[1];
+    if(min - trackbarPosition < 0){
+        min = 0;
+    }
+    else{
+        min -= trackbarPosition;
+    }
+    if(max + trackbarPosition >255){
+        max = 255;
+    }
+    else{
+        max += trackbarPosition;
+    }
+    lowerHSV[1] = min;
+    higherHSV[1] = max;
+
+    // update the value
+    min = lowerHSV[2];
+    max = higherHSV[2];
+    if(min - trackbarPosition < 0){
+        min = 0;
+    }
+    else{
+        min -= trackbarPosition;
+    }
+    if(max + trackbarPosition >255){
+        max = 255;
+    }
+    else{
+        max += trackbarPosition;
+    }
+    lowerHSV[2] = min;
+    higherHSV[2] = max;
+
+}
+void SetChromaLevelsFromPath(){
+
+    std::vector<Mat> hsvChannels(3);
+    split(patchFromAsteroidImage, hsvChannels);
+
+    double min = 0, max =0;
+    // hue
+    minMaxLoc(hsvChannels[0],&min, &max);
+    std::cout << "min: " << min << " max: " << max  << std::endl;
+    lowerHSV[0] = (min -2) < 0 ? min : min-2 ;
+    higherHSV[0] = max + 2;
+
+    // sat
+    minMaxLoc(hsvChannels[1],&min, &max);
+    std::cout << "min: " << min << " max: " << max  << std::endl;
+    lowerHSV[1] = (min -100) < 0 ? min : min -100;
+    higherHSV[1] = max + 100;
+
+    // value
+    minMaxLoc(hsvChannels[2],&min, &max);
+    std::cout << "min: " << min << " max: " << max  << std::endl;
+    lowerHSV[2] = min;
+    higherHSV[2] = max;
+
+    // mean
+    meanOfPatch = mean(patchFromAsteroidImage);
+    std::cout << "mean: " <<meanOfPatch << std::endl;
+
+    // store a history of this sample
+    sampleLowerHSV = lowerHSV;
+    sampleHigherHSV = higherHSV;
+
+}
+void BlendImageWithChromaLevels()
+{
+    Mat image_hsv;
+    cvtColor(astroidImageFromVideoClone, image_hsv, COLOR_BGR2HSV);
+
+    std::cout << lowerHSV << std::endl;
+    std::cout << higherHSV << std::endl;
+
+    Mat background_mask;
+    inRange(image_hsv, lowerHSV, higherHSV, background_mask);
+
+    blendedImage = astroidImageFromVideoClone.clone();
+    backgroundImage.copyTo(blendedImage, background_mask);
+    imshow("Blended Image", blendedImage);
+
+}
 void resetImage()
 {
     astroidImageFromVideoClone.copyTo(astroidImageFromVideo);
+}
+void PrintVideoProperties(const VideoCapture& videoCapture)
+{
+    std::cout << "Video width: " << videoCapture.get(CAP_PROP_FRAME_WIDTH) << std::endl;
+    std::cout << "Video height: " << videoCapture.get(CAP_PROP_FRAME_HEIGHT) << std::endl;
+    std::cout << "Video duration: " << videoCapture.get(CAP_PROP_FRAME_COUNT) << std::endl;
+    std::cout << "Video fps: " << videoCapture.get(CAP_PROP_FPS) << std::endl;
 }
