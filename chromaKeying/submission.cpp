@@ -39,6 +39,9 @@ Mat astroidImageFromVideo;
 Mat astroidImageFromVideoClone;
 Mat patchFromAsteroidImage;
 Mat blendedImage;
+Size blurKernel(0,0);
+Size videoFrameSize(0,0);
+int videoFps = 25;
 
 Point mousePointLBUTTONDOWN(0,0);
 Point mousePointLBUTTONUP(0,0);
@@ -55,19 +58,21 @@ int scaleFactor =0;
 void PrintVideoProperties(const VideoCapture& videoCapture);
 void GrabFrameFromVideo(VideoCapture& videoCapture);
 void Tolerance(int trackbarPosition, void* userData);
+void Softness(int trackbarPosition, void* userData);
 void SelectPatch(int event, int x, int y, int flags, void *userdata);
 void resetImage();
 void SetChromaLevelsFromPath();
 void SetChromaLevelsFromTrackbarValue(int trackbarPosition);
-void BlendImageWithChromaLevels();
+void BlendImageWithChromaLevels(bool showOutput = true);
+void RecordVideo();
 
 int main() {
     std::cout << "Chroma keying example" << std::endl;
 
-    backgroundImage = imread("background1.jpg",IMREAD_COLOR);
+    backgroundImage = imread("background.jpg",IMREAD_COLOR);
 
     std::string videoFilename = "greenscreen-asteroid.mp4";
-    std::string outputVideoFilename = "output.mp4";
+
 
     // check to see if the video can be used and is in the directory to be read.
     VideoCapture videoCapture(videoFilename);
@@ -80,23 +85,33 @@ int main() {
 
     PrintVideoProperties(videoCapture);
     GrabFrameFromVideo(videoCapture);
+    videoCapture.release();
 
     std::string astroidWindow = "Asteroid";
     std::string astroidToleranceTrackbarName = "Tolerance";
+    std::string astroidSoftnessTrackbarName = "Softness";
     namedWindow(astroidWindow,WINDOW_AUTOSIZE);
 
     createTrackbar(astroidToleranceTrackbarName,astroidWindow,&scaleFactor,100,Tolerance);
     setTrackbarMin(astroidToleranceTrackbarName,astroidWindow,0);
     setTrackbarMax(astroidToleranceTrackbarName,astroidWindow,100);
 
+    createTrackbar(astroidSoftnessTrackbarName,astroidWindow,&scaleFactor,100,Softness);
+    setTrackbarMin(astroidSoftnessTrackbarName,astroidWindow,0);
+    setTrackbarMax(astroidSoftnessTrackbarName,astroidWindow,100);
+
     setMouseCallback(astroidWindow,SelectPatch);
 
     imshow(astroidWindow,astroidImageFromVideo);
-    waitKey(0);
-
+    int keycode =  waitKey(0) & 0xFF;
+    // letter r to do perform the recording of the video
+    if(keycode == 114)
+    {
+        RecordVideo();
+    }
 
     // clean up
-    videoCapture.release();
+
     destroyAllWindows();
     return 0;
 }
@@ -135,7 +150,17 @@ void Tolerance(int trackbarPosition, void* userData)
     BlendImageWithChromaLevels();
 
 }
+void Softness(int trackbarPosition, void* userData)
+{
+    std::cout << trackbarPosition << std::endl;
 
+    // has to be greater than zero and divisible by 2
+    if(trackbarPosition % 2 && trackbarPosition > 0){
+        blurKernel = Size(trackbarPosition,trackbarPosition);
+    }
+
+    BlendImageWithChromaLevels();
+}
 void SelectPatch(int event, int x, int y, int flags, void *userdata)
 {
 
@@ -171,7 +196,7 @@ void SelectPatch(int event, int x, int y, int flags, void *userdata)
         cvtColor(astroidImageFromVideoClone, image_hsv, COLOR_BGR2HSV);
 
         patchFromAsteroidImage = image_hsv(patchROI);
-        imshow("patch", patchFromAsteroidImage);
+        //imshow("patch", patchFromAsteroidImage);
         imshow("Asteroid", astroidImageFromVideo);
         SetChromaLevelsFromPath();
         BlendImageWithChromaLevels();
@@ -272,7 +297,7 @@ void SetChromaLevelsFromPath(){
     sampleHigherHSV = higherHSV;
 
 }
-void BlendImageWithChromaLevels()
+void BlendImageWithChromaLevels(bool showOutput)
 {
     Mat image_hsv;
     cvtColor(astroidImageFromVideoClone, image_hsv, COLOR_BGR2HSV);
@@ -284,8 +309,17 @@ void BlendImageWithChromaLevels()
     inRange(image_hsv, lowerHSV, higherHSV, background_mask);
 
     blendedImage = astroidImageFromVideoClone.clone();
+
+    if(blurKernel.height > 0)
+    {
+        GaussianBlur(background_mask, background_mask, blurKernel,0,0);
+    }
+
     backgroundImage.copyTo(blendedImage, background_mask);
-    imshow("Blended Image", blendedImage);
+    if(showOutput)
+    {
+        imshow("Blended Image", blendedImage);
+    }
 
 }
 void resetImage()
@@ -294,8 +328,54 @@ void resetImage()
 }
 void PrintVideoProperties(const VideoCapture& videoCapture)
 {
-    std::cout << "Video width: " << videoCapture.get(CAP_PROP_FRAME_WIDTH) << std::endl;
-    std::cout << "Video height: " << videoCapture.get(CAP_PROP_FRAME_HEIGHT) << std::endl;
+    int width=0, height=0, fps=0;
+
+    width = videoCapture.get(CAP_PROP_FRAME_WIDTH);
+    height = videoCapture.get(CAP_PROP_FRAME_HEIGHT);
+    fps = videoCapture.get(CAP_PROP_FPS);
+    std::cout << "Video width: " << width << std::endl;
+    std::cout << "Video height: " << height << std::endl;
     std::cout << "Video duration: " << videoCapture.get(CAP_PROP_FRAME_COUNT) << std::endl;
-    std::cout << "Video fps: " << videoCapture.get(CAP_PROP_FPS) << std::endl;
+    std::cout << "Video fps: " << fps  << std::endl;
+
+    // needed for the recording
+    videoFrameSize = Size(width,height);
+    videoFps = fps;
+}
+void RecordVideo()
+{
+    std::string videoFilename = "greenscreen-asteroid.mp4";
+    std::string outputVideoFilename = "output.mp4";
+
+    // check to see if the video can be used and is in the directory to be read.
+    VideoCapture videoReader(videoFilename);
+    VideoWriter  videoWriter(outputVideoFilename,VideoWriter::fourcc('M','J','P','G'),videoFps,videoFrameSize);
+
+    int counter = 0;
+    while(videoReader.isOpened())
+    {
+        videoReader >> astroidImageFromVideoClone;
+        if(astroidImageFromVideoClone.empty())
+        {
+            break;
+        }
+
+        // apply the chroma levels and blur
+        BlendImageWithChromaLevels(false);
+
+        // save to disk
+        //Mat rgbFrame;
+        //cvtColor(blendedImage, rgbFrame, COLOR_HSV2RGB);
+        videoWriter.write(blendedImage);
+        imshow("VideoFrame", blendedImage);
+        waitKey(25);
+        counter++;
+
+        std::cout << "Video Frame Number: " << counter << std::endl;
+
+    }
+
+    //clean up
+    videoReader.release();
+    videoWriter.release();
 }
