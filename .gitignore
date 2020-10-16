@@ -58,3 +58,5 @@ blemishRemoval/.idea
 blemishRemoval/cmake-build-debug
 chromaKeying/.idea
 chromaKeying/cmake-build-debug
+documentAlignmentWithHomography/.idea
+documentAlignmentWithHomography/cmake-build-debug
