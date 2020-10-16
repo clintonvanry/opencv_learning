@@ -7,6 +7,7 @@
 #include <opencv2/highgui.hpp>
 
 using namespace cv;
+// as a reference on how to do this.
 // https://medium.com/fnplus/blue-or-green-screen-effect-with-open-cv-chroma-keying-94d4a6ab2743
 
 /*
@@ -61,9 +62,14 @@ void RecordVideo();
 
 int main() {
     std::cout << "Chroma keying example" << std::endl;
+    std::cout << "Please select a region of interest on the asteriod image" << std::endl;
+    std::cout << "Please use the slider of Tolerance to adjust. I found the tolerance level 67 to be quite good." << std::endl;
+    std::cout << "Please use the slider of Softness to adjust. I found the softness level 39 to be quite good." << std::endl;
+    std::cout << "Once you have finished adjusting. Press the letter 'r' to create the output video." << std::endl;
+    std::cout << "Press the escape key to exit." << std::endl;
+
 
     backgroundImage = imread("background.jpg",IMREAD_COLOR);
-
     std::string videoFilename = "greenscreen-asteroid.mp4";
     
     // check to see if the video can be used and is in the directory to be read.
