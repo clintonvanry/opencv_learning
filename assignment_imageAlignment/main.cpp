@@ -5,6 +5,9 @@
 
 using namespace cv;
 
+// https://github.com/richardjpurcell/featureAlignment/blob/master/featureAlignment/Source.cpp
+
+
 /*
  *
 Grading Rubric
@@ -69,10 +72,7 @@ int main() {
     ///
     /// YOUR CODE HERE
     ///
-
-    std::vector<KeyPoint> keypointsBlue;
-    std::vector<KeyPoint> keypointsGreen;
-    std::vector<KeyPoint> keypointsRed;
+    int MAX_FEATURES = 2000;
 
 
     // Detect ORB features and compute descriptors.
@@ -82,7 +82,22 @@ int main() {
     ///
     /// YOUR CODE HERE
     ///
+    Ptr<ORB> orb = ORB::create(MAX_FEATURES);
 
+    // blue
+    std::vector<KeyPoint> keypointsBlue;
+    Mat descriptorsBlue;
+    orb->detectAndCompute(blue,Mat(),keypointsBlue,descriptorsBlue);
+
+    // green
+    std::vector<KeyPoint> keypointsGreen;
+    Mat descriptorsGreen;
+    orb->detectAndCompute(green,Mat(),keypointsGreen,descriptorsGreen);
+
+    // red
+    std::vector<KeyPoint> keypointsRed;
+    Mat descriptorsRed;
+    orb->detectAndCompute(red,Mat(),keypointsRed,descriptorsRed);
 
     //**************** STEP 2 ******************************************************************************************
 
@@ -116,12 +131,16 @@ int main() {
     ///
     /// YOUR CODE HERE
     ///
-    int GOOD_MATCH_PERCENT = 5;
-    std::vector<DMatch> matchesBlueGreen;
+    float GOOD_MATCH_PERCENT = 0.1f;
+
+
     // Match features between blue and Green channels
     ///
     /// YOUR CODE HERE
     ///
+    std::vector<DMatch> matchesBlueGreen;
+    Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
+    matcher->match(descriptorsBlue,descriptorsGreen,matchesBlueGreen,Mat());
 
     // Sort matches by score
     std::sort(matchesBlueGreen.begin(), matchesBlueGreen.end());
@@ -139,13 +158,14 @@ int main() {
 
     // We will repeat the same process for Red and Green channels this time.
     // Find the matches between Red and Green channels and save them in matchesRedGreen variable
-    std::vector<DMatch> matchesRedGreen;
+
 
     // Match features between Red and Green channels
     ///
     /// YOUR CODE HERE
     ///
-
+    std::vector<DMatch> matchesRedGreen;
+    matcher->match(descriptorsRed,descriptorsGreen,matchesRedGreen,Mat());
     // Sort matches by score
     std::sort(matchesRedGreen.begin(), matchesRedGreen.end());
 
@@ -175,11 +195,20 @@ int main() {
     ///
     /// YOUR CODE HERE
     ///
+    std::vector<Point2f> bluePoints;
+    std::vector<Point2f> greenPoints;
+
+    for (size_t i = 0; i < matchesBlueGreen.size(); i++)
+    {
+        bluePoints.push_back(keypointsBlue[matchesBlueGreen[i].queryIdx].pt);
+        greenPoints.push_back(keypointsGreen[matchesBlueGreen[i].trainIdx].pt);
+    }
 
     // Find homography
     ///
     /// YOUR CODE HERE
     ///
+    Mat hBlue = findHomography(bluePoints, greenPoints, RANSAC);
 
     //Similarly, we can calculate the homography between Green and Red channels.
     //Find the homography matrix between the Red and Green channel and name it hRedGreen
@@ -188,11 +217,24 @@ int main() {
     ///
     /// YOUR CODE HERE
     ///
+    std::vector<Point2f> redPoints;
+    greenPoints.clear();
+
+    for (size_t i = 0; i < matchesRedGreen.size(); i++)
+    {
+        redPoints.push_back(keypointsRed[matchesRedGreen[i].queryIdx].pt);
+        greenPoints.push_back(keypointsGreen[matchesRedGreen[i].trainIdx].pt);
+    }
+
 
     // Find homography
     ///
     /// YOUR CODE HERE
     ///
+    Mat hRed = findHomography(redPoints, greenPoints, RANSAC);
+
+
+
     //**************** STEP 4 ******************************************************************************************
 
     //**************** STEP 5 ******************************************************************************************
@@ -213,7 +255,8 @@ int main() {
     Mat blueWarped;
     Mat redWarped;
 
-
+    warpPerspective(blue, blueWarped, hBlue, green.size());
+    warpPerspective(red, redWarped, hRed, green.size());
 
 
     imshow("Blue channel aligned w.r.t green channel", blueWarped);
