@@ -14,6 +14,7 @@ using namespace cv;
  * 1. Implement a fusion of detect and track so that it performs better in terms of speed and accuracy than TLD
  * 2. The output video should show the bounding box in GREEN when the algorithm is performing tracking and BLUE when it is performing detection
  * 3. The display should indicate if tracking fails.
+ * Advice from project video: use yolo for detection
  */
 
 Size videoFrameSize(0,0);
