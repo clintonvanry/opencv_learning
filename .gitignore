@@ -64,3 +64,5 @@ assignment_panorama/.idea
 assignment_panorama/cmake-build-debug
 assignment_imageAlignment/.idea
 assignment_imageAlignment/cmake-build-debug
+project_detectandtrack/.idea
+project_detectandtrack/cmake-build-debug
