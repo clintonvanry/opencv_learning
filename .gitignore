@@ -68,3 +68,5 @@ project_detectandtrack/.idea
 project_detectandtrack/cmake-build-debug
 project_documentScanner/.idea
 project_documentScanner/cmake-build-debug
+cudaSample/.idea
+cudaSample/cmake-build-debug
