@@ -70,3 +70,5 @@ project_documentScanner/.idea
 project_documentScanner/cmake-build-debug
 cudaSample/.idea
 cudaSample/cmake-build-debug
+cudaVideoWriter/.idea
+cudaVideoWriter/cmake-build-debug
